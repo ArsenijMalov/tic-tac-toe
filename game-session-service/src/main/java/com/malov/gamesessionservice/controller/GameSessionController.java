@@ -1,69 +1,46 @@
 package com.malov.gamesessionservice.controller;
 
 import com.malov.gamesessionservice.dto.GameState;
-import com.malov.gamesessionservice.dto.MoveRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 @RestController
 @RequestMapping("/sessions")
 public class GameSessionController {
-    private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
-    private final RestTemplate restTemplate = new RestTemplate();
+    private static final String GAME_ENGINE_BASE_URL = "http://game-engine-service/api/v1";
+    private final Map<Long, GameState> sessions = new ConcurrentHashMap<>();
+    private final RestTemplate restTemplate;
     private final AtomicLong sessionCounter = new AtomicLong(1);
+
+    public GameSessionController(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     @PostMapping
     public ResponseEntity<Long> createSession() {
         Long sessionId = sessionCounter.getAndIncrement();
-        emitters.put(sessionId, new SseEmitter());
         return ResponseEntity.ok(sessionId);
     }
 
     @PostMapping("/{sessionId}/simulate")
-    public void simulateGame(@PathVariable Long sessionId) {
-
-        GameState game = new GameState();
-        while (!game.isGameOver()) {
-
-
-            ResponseEntity<GameState> gameResponse = restTemplate.postForEntity("http://localhost:8081/games/" + sessionId + "/move",
-                    game.makeMove(), GameState.class);
-            GameState newState = gameResponse.getBody();
-            game.setBoard(newState.getBoard());
-            game.setStatus(newState.getStatus());
-            game.setResult(newState.getResult());
-            sendGameUpdate(sessionId, game);
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ignored) {
-            }
-        }
+    public ResponseEntity<GameState> simulateGame(@PathVariable Long sessionId) {
+        GameState game = sessions.containsKey(sessionId) ? sessions.get(sessionId) : new GameState();
+        ResponseEntity<GameState> gameResponse = restTemplate.postForEntity("%s/games/%s/move".formatted(GAME_ENGINE_BASE_URL, sessionId),
+                game.makeMove(), GameState.class);
+        updateGameState(game, gameResponse.getBody(), sessionId);
+        return gameResponse;
     }
 
-    @GetMapping("/{sessionId}")
-    public ResponseEntity<SseEmitter> getUpdates(@PathVariable Long sessionId) {
-        return ResponseEntity.ok(emitters.get(sessionId));
+    private void updateGameState(GameState existingGame, GameState newState, Long sessionId) {
+        existingGame.setBoard(newState.getBoard());
+        existingGame.setStatus(newState.getStatus());
+        existingGame.setResult(newState.getResult());
+        sessions.put(sessionId, existingGame);
     }
 
-    private void sendGameUpdate(Long sessionId, GameState game) {
-        SseEmitter emitter = emitters.get(sessionId);
-        if (emitter != null) {
-            try {
-                emitter.send(SseEmitter.event().data(game));
-                if (game.isGameOver()) {
-                    emitters.remove(sessionId);
-                }
-            } catch (IOException e) {
-                emitters.remove(sessionId);
-            }
-        }
-    }
 }

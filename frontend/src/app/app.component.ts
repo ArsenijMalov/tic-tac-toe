@@ -29,10 +29,12 @@ export class AppComponent implements OnInit {
 
   startSimulation(): void {
     // Запрос на создание новой игровой сессии
-    this.http.post<string>('/api/sessions', {}).subscribe(response => {
+    this.http.post<string>('/api/v1/sessions', {}).subscribe(response => {
+
+      console.log('resp: ' + response);
       this.sessionId = response;
       this.simulateGame();
-      this.http.post<string>('/api/sessions/' + this.sessionId + '/simulate', {}).subscribe(response => {
+      this.http.post<string>('/api/v1/sessions/' + this.sessionId + '/simulate', {}).subscribe(response => {
           console.log(response);
       });
     });
@@ -41,8 +43,7 @@ export class AppComponent implements OnInit {
   simulateGame(): void {
     // Подключаемся к SSE, чтобы получать обновления о ходе игры
 
-    console.log(this.sessionId);
-    const eventSource = new EventSource(`/api/sessions/${this.sessionId}`);
+    const eventSource = new EventSource(`/api/v1/sessions/${this.sessionId}`);
 
     eventSource.onmessage = (event) => {
       const gameData = JSON.parse(event.data);

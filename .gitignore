@@ -8,3 +8,11 @@
 /game-engine-service/target
 /game-session-service/.mvn
 /game-session-service/target
+
+/discovery-service/.idea
+/discovery-service/.mvn
+/discovery-service/target
+
+/api-gateway/.idea
+/api-gateway/.mvn
+/api-gateway/target
