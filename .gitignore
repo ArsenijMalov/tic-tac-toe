@@ -3,3 +3,8 @@
 /frontend/.angular
 /frontend/package-lock.json
 /frontend/.vscode
+
+/game-engine-service/.mvn
+/game-engine-service/target
+/game-session-service/.mvn
+/game-session-service/target

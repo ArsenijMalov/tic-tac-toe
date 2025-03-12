@@ -1,0 +1,28 @@
+<div class="game-container">
+  <h2>Tic Tac Toe</h2>
+
+  <button (click)="startSimulation()" class="start-button">Start Simulation</button>
+
+  <div *ngIf="sessionId" class="board">
+    <div class="row" *ngFor="let row of board; let rowIndex = index">
+      <div class="cell" *ngFor="let cell of row; let colIndex = index">
+        {{ cell }}
+      </div>
+    </div>
+  </div>
+
+  <div class="status" *ngIf="sessionId">
+    <p>Status: {{ gameStatus }}</p>
+  </div>
+
+  <div class="status" *ngIf="sessionId">
+    <p>Status: {{ result }}</p>
+  </div>
+
+<!--  <div class="move-history" *ngIf="moveHistory.length > 0">-->
+<!--    <h3>Move History</h3>-->
+<!--    <ul>-->
+<!--      <li *ngFor="let move of moveHistory">{{ move }}</li>-->
+<!--    </ul>-->
+<!--  </div>-->
+</div>

@@ -1,0 +1,37 @@
+.game-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.start-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  grid-gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.cell {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid black;
+  font-size: 2em;
+}
+
+.status {
+  margin-top: 20px;
+}
+
+.move-history {
+  margin-top: 20px;
+}
