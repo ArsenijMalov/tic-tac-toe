@@ -1,11 +1,11 @@
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
-import {CommonModule} from '@angular/common';  // Это важно для директив Angular, таких как *ngIf
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  standalone: true,  // Указываем, что компонент standalone
-  imports: [HttpClientModule, CommonModule],  // Импортируем необходимые модули
+  standalone: true,
+  imports: [HttpClientModule, CommonModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
@@ -24,11 +24,9 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Логика инициализации компонента, если нужно
   }
 
   startSimulation(): void {
-    // Запрос на создание новой игровой сессии
     this.http.post<string>('/api/v1/sessions', {}).subscribe(response => {
 
       console.log('resp: ' + response);
@@ -41,7 +39,6 @@ export class AppComponent implements OnInit {
   }
 
   simulateGame(): void {
-    // Подключаемся к SSE, чтобы получать обновления о ходе игры
 
     const eventSource = new EventSource(`/api/v1/sessions/${this.sessionId}`);
 
@@ -52,7 +49,7 @@ export class AppComponent implements OnInit {
     };
 
     eventSource.onerror = () => {
-      console.error("Ошибка подключения к SSE");
+      console.error("Error connection to SSE");
     };
   }
 

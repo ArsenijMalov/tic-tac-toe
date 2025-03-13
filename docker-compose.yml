@@ -1,0 +1,97 @@
+version: "3.8"
+
+networks:
+  my-network:
+    driver: bridge
+
+services:
+  eureka:
+    build:
+      context: discovery-service
+    container_name: eureka-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    environment:
+      SERVER_PORT: 8761
+    ports:
+      - "8761:8761"
+    networks:
+      - my-network
+
+  api-gateway:
+    build:
+      context: api-gateway
+    container_name: api-gateway
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      eureka:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8080
+      DISCOVERY_URL: http://eureka-server:8761/eureka/
+      EUREKA_CLIENT_ENABLED: true
+    ports:
+      - "8080:8080"
+    networks:
+      - my-network
+
+  game-session-service:
+    build:
+      context: game-session-service
+    container_name: game-session-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/api/v1/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      eureka:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8082
+      DISCOVERY_URL: http://eureka-server:8761/eureka/
+      EUREKA_CLIENT_ENABLED: true
+    ports:
+      - "8082:8082"
+    networks:
+      - my-network
+
+  game-engine-service:
+    build:
+      context: game-engine-service
+    container_name: game-engine-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/v1/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      eureka:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8081
+      DISCOVERY_URL: http://eureka-server:8761/eureka/
+      EUREKA_CLIENT_ENABLED: true
+    ports:
+      - "8081:8081"
+    networks:
+      - my-network
+
+  frontend:
+    build:
+      context: frontend
+    container_name: angular-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - my-network
